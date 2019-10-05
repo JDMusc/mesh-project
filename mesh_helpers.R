@@ -28,7 +28,12 @@ getMeshCountsYear = function(year) {
 }
 
 
-loadMeshTermsCounts = function(){
+loadMeshTermsCounts = function(cached_file = NULL){
+  
+  if(!is.null(cached_file)){
+    return(cached_file %>% readRDS)
+  }
+  
   yearDf = function(year) getMeshCountsYear(year) %>% rename(!!year := n)
   
   years = 2011:2017 %>% as.character
