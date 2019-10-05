@@ -1,0 +1,39 @@
+---
+title: "Term Counts"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+source('mesh_helpers.R')
+```
+
+
+```{r}
+term_counts = loadMeshTermsCounts('data/mesh_term_counts.RDS')
+head(term_counts)
+```
+
+
+
+```{r}
+ml1 = read.csv('mesh_levels/MeSH_L1.csv', header = T)
+print(head(ml1))
+ml2 = read.csv('mesh_levels/MeSH_L2.csv', header = T)
+print(head(ml2))
+ml3 = read.csv('mesh_levels/MeSH_L3.csv', header = T)
+print(head(ml3))
+```
+
+Combine all terms to one data frame
+```{r}
+mesh_levels = rbind(
+  data.frame(Level = 1, Descriptor = ml1$Desc),
+  data.frame(Level = 2, Descriptor = ml2$DescriptorName),
+  data.frame(Level = 3, Descriptor = ml3$DescriptorName)
+)
+sample_n(mesh_levels, 5)
+```
