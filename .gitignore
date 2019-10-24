@@ -1,3 +1,4 @@
 .Rhistory
 archive/
 *.RDS
+__pycache__/
