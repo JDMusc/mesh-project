@@ -19,25 +19,11 @@ head(term_counts)
 ```
 
 
-
 ```{r}
-ml1 = read.csv('mesh_levels/MeSH_L1.csv', header = T)
-print(head(ml1))
-ml2 = read.csv('mesh_levels/MeSH_L2.csv', header = T)
-print(head(ml2))
-ml3 = read.csv('mesh_levels/MeSH_L3.csv', header = T)
-print(head(ml3))
+mesh_levels = read.csv('data/desc2020_compressed.csv')
+head(mesh_levels)
 ```
 
-Combine all terms to one data frame
-```{r}
-mesh_levels = rbind(
-  data.frame(Level = 1, Descriptor = ml1$Desc),
-  data.frame(Level = 2, Descriptor = ml2$DescriptorName),
-  data.frame(Level = 3, Descriptor = ml3$DescriptorName)
-)
-sample_n(mesh_levels, 5)
-```
 
 ##View Count Summaries for Level and Type
 
@@ -64,8 +50,14 @@ term_counts %>%
   summarise(n = n(), total = sum(term_counts$type == type), percent = as.integer(n/total * 100))
 ```
 
-* Type Descriptor (6%) and type Qualifier (23%) are in the mesh levels
-* Only 1356 of the 1859 mesh levels are found in the term counts
+```{r}
+term_counts %>%
+  filter(TermUpper %in% mesh_levels$DescriptorUpper) %>%
+  summarise(n = n(), total = nrow(term_counts), percent = as.integer(n/total * 100))
+```
+
+* Type Descriptor (99%) and type Qualifier (44%) are in the mesh levels
+* We have IDs for 21455 of the 21563 terms in term counts 
 
 Examine the levels that are not found in our database of mesh terms
 ```{r}
@@ -73,31 +65,17 @@ mesh_levels$Found = mesh_levels %>%
   select(DescriptorUpper) %>% 
   sapply(function(t) t %in% term_counts$TermUpper)
 mesh_levels %>% filter(!Found) %>% sample_n(10)
+
+mesh_levels$Level = sapply(mesh_levels$TreeNumber, function(tn) substr(tn, 1, 1))
 ```
 
 Examine found vs not found by level
 ```{r}
-mesh_levels %>% group_by(Level, Found) %>% summarise(n = n())
+mesh_levels %>% group_by(Level, Found) %>% summarise(n = n()) %>%
+  ggplot(aes(Level, n)) + 
+  geom_bar(aes(fill = Found), stat="identity", position = "dodge")
 ```
 
-Look for patterns between found/not-found at each level
-```{r}
-printLevelFoundComparisons = function(level, n = 5) {
-  mesh_levels %>% 
-    select(-DescriptorUpper) %>% 
-    filter(Level == !!level & Found) %>% 
-    sample_n(n) %>% print
-  
-  mesh_levels %>% 
-    select(-DescriptorUpper) %>%
-    filter(Level == !!level & !Found) %>% 
-    sample_n(n) %>% print
-}
-
-printLevelFoundComparisons(1, 3)
-printLevelFoundComparisons(2)
-printLevelFoundComparisons(3)
-```
 
 ##Approach by Term Counts 
 
@@ -133,4 +111,40 @@ term_counts %>%
 ```
 
 ```{r}
+term_counts_found = merge(term_counts, mesh_levels, by.x = "TermUpper", by.y = "DescriptorUpper")
+nrow(term_counts_found)
+```
+
+A lot of terms were found more than once.
+
+
+```{r}
+term_counts_found_unique = term_counts_found %>% 
+  group_by(TermUpper) %>%
+  summarise(TreeNumber = first(TreeNumber), Level = first(Level),
+            term = first(term), UI = first(UI),
+            `2011` = first(`2011`), `2012` = first(`2012`),
+            `2013` = first(`2013`), `2014` = first(`2014`),
+            `2015` = first(`2015`), `2016` = first(`2016`),
+            `2017` = first(`2017`), n = first(n),
+            percent_with_term = first(percent_with_term)) %>% 
+  as.data.frame
+
+head(term_counts_found_unique)
+```
+
+```{r}
+nrow(term_counts_found_unique)
+```
+
+```{r}
+term_counts_found_unique %>% 
+  group_by(Level) %>% summarise(n = n()) %>%
+  ggplot(aes(Level, n)) + 
+  geom_bar(stat="identity", position = "dodge")
+```
+
+Write to file
+```{r}
+saveRDS(term_counts_found_unique, 'data/mesh_term_counts_ided.RDS')
 ```
