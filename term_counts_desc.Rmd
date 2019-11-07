@@ -148,3 +148,9 @@ Write to file
 ```{r}
 saveRDS(term_counts_found_unique, 'data/mesh_term_counts_ided.RDS')
 ```
+
+```{r}
+term_counts_found_unique %>% 
+  filter(substr(TreeNumber, 1, 1) == "C") %>% 
+  saveRDS('data/mesh_term_counts_ided_c_only.RDS')
+```
