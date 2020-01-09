@@ -30,7 +30,7 @@ def cleanTxt(x, post_training = True, remove_nums = "smart", EHR = True):
 def toAscii(uni_str):
   return unicodedata.normalize(
     'NFKD', uni_str).encode(
-      'ascii','ignore')
+      'ascii','ignore').decode()
 
 
 def removeUnderscore(sent):

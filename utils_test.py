@@ -3,7 +3,7 @@ import pytest
 import utils
 
 def test_toAscii():
-  assert utils.toAscii("hello 今日は") == b"hello "
+  assert utils.toAscii("hello 今日は") == "hello "
 
 
 def test_removeUnderscore():
