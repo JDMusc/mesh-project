@@ -9,24 +9,27 @@ def test_toAscii():
 def test_removeUnderscore():
   assert utils.removeUnderscore("hello_ok_bye_") == "hello ok bye "
 
-onIn = lambda s: "on " + s + "in ..."
 
-def test_replaceDates():
-  date_token = utils.date_token
+onIn = lambda s: "on " + s + " in ..."
+date_token = utils.date_token
+    
+def test_replaceDateNumbers():
   
-  assert utils.replaceDates("11/14/19") == date_token
-  assert utils.replaceDates("11/14/2019") == date_token
-  assert utils.replaceDates(onIn("11/14/19")) == onIn(date_token)
+  assert utils.replaceDateNumbers("11/14/19") == date_token
+  assert utils.replaceDateNumbers("11/14/2019") == date_token
+  assert utils.replaceDateNumbers(onIn("11/14/19")) == onIn(date_token)
   
-  assert utils.replaceDates("11-14-19") == date_token
-  assert utils.replaceDates("11-14-2019") == date_token
-  assert utils.replaceDates(onIn("11-14-19")) == onIn(date_token)
+  assert utils.replaceDateNumbers("11-14-19") == date_token
+  assert utils.replaceDateNumbers("11-14-2019") == date_token
+  assert utils.replaceDateNumbers(onIn("11-14-19")) == onIn(date_token)
   
-  assert utils.replaceDates("Nov. 14") == date_token
-  assert utils.replaceDates("November 14") == date_token
-  assert utils.replaceDates("November 14, 2019") == date_token
-  assert utils.replaceDates("Nov 14") == date_token
-  assert utils.replaceDates(onIn("Nov 14")) == onIn(date_token)
+    
+def test_replaceDateStrings():
+  assert utils.replaceDateStrings("Nov. 14") == date_token
+  assert utils.replaceDateStrings("November 14") == date_token
+  assert utils.replaceDateStrings("November 14, 2019") == date_token
+  assert utils.replaceDateStrings("Nov 14") == date_token
+  assert utils.replaceDateStrings(onIn("Nov 14")) == onIn(date_token)
 
 
 

@@ -9,7 +9,7 @@ def cleanTxt(x, post_training = True, remove_nums = "smart", EHR = True):
     toAscii, 
     lambda _: _.lower(),
     removeUnderscore,
-    replaceDates,
+    replaceDateNumbers,
     replaceTimes,
     removeAbbreviationPeriods,
     removeTitlePeriods,
@@ -37,8 +37,20 @@ def removeUnderscore(sent):
   return re.sub('_', ' ', sent)
 
 
+#range_regex = r"((?<=[^\w\-/])|^|\.)(\d+ ?(-|/) ?\d+)(?=[^\w\-/]|$)"
+
+
+date_regex1 = r"\b\d{1,2}/\d{1,2}/(\d\d){1,2}\b"
+date_regex2 = r"\b\d{1,2}-\d{1,2}-(\d\d){1,2}\b"
 date_token = "_date_"
-def replaceDates(sent):
+def replaceDateNumbers(sent):
+  sent = re.sub(date_regex1, date_token, sent)
+  sent = re.sub(date_regex2, date_token, sent)
+  
+  return sent
+
+
+def replaceDateStrings(sent):
   words = [sent[s:e].strip().replace('on ', '') 
     for (_, (s, e)) in df.find_dates(sent, index = True)]
   for w in words:
