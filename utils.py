@@ -97,7 +97,7 @@ def removeNumberCommas(sent):
     sent)
     
 
-puncts = r"(){}$+?@!|&%:,;<>=^#~"
+puncts = r"/(){}$+?@!|&%:,;<>=^#~"
 remove_puncts_regex = "[" + puncts + "]"
 remove_puncts_replace = r" "
 def removePunctuation(sent):
