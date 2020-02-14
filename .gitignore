@@ -1,5 +1,7 @@
 .Rhistory
 archive/
-*.RDS
+data/*.RDS
+data/desc2020.xml
+data/desc2020med.xml
 __pycache__/
 .ipynb_checkpoints

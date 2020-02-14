@@ -3,7 +3,7 @@
 # including pre-processing
 # ==== Load Packages ====
 library(stringr)
-library(qdap)
+#library(qdap)
 library(qdapRegex)
 
 #' Clean the text before training (custom cleaner for word vectors by JO)
@@ -25,6 +25,7 @@ clean_txt <- function(x, post_training = TRUE, remove_nums = "smart", EHR = TRUE
   # see https://regexr.com/
   # remove extra spaces, make lower case.
   cleantxt <- x %>% 
+    gsub('×', 'x', .) %>%
     iconv("latin1", "ASCII", sub=" ") %>% 
     iconv("UTF-8", "ASCII", sub=" ") %>% 
     tolower() %>% # lower case

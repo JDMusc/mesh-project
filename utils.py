@@ -1,15 +1,19 @@
+import codecs
 import datefinder as df
 import re
 from toolz import pipe as p
 import unicodedata
 
 
-def cleanTxt(x, post_training = True, remove_nums = "smart", EHR = True):
-  return p(x,
+def cleanTxt(x, post_training = True, remove_nums = "smart", EHR = True,
+        debug_stop_pt = None):
+  clean_txt_fxns =  [
+    replaceSpecialUnicode,
     toAscii, 
     lambda _: _.lower(),
     removeUnderscore,
     replaceDateNumbers,
+    replaceDateStrings,
     replaceTimes,
     removeAbbreviationPeriods,
     removeTitlePeriods,
@@ -21,16 +25,35 @@ def cleanTxt(x, post_training = True, remove_nums = "smart", EHR = True):
     separateNumbersAge,
     lambda _: separateLettersNumbers(_) if EHR else _,
     lambda _: replaceNums(_) if remove_nums == "all" else (
-      replaceLargeInts(removeDecimals(_)) if remove_nums == "smart" else _),
+      p(_, removeDecimals, replaceLargeInts) if remove_nums == "smart" else _),
     removeApostrophes,
     lambda _: postTrainPrep(_) if post_training else w2vPrep(_)
-    )
+  ]
+
+  fxns = clean_txt_fxns if debug_stop_pt is None else clean_txt_fxns[0:debug_stop_pt]
+  for fn in fxns:
+      x = fn(x)
+  
+  return x
+
+
+def replaceSpecialUnicode(sent):
+  return sent.replace('×', 'x').replace('™','').replace('ï', 'i')#.replace('é','e')
+
+
+def makeSpaceHandler(enc_error):
+  repl = ' '
+  start_again = min(enc_error.end, len(enc_error.object) - 1)
+  return (repl, start_again)
+
+
+codecs.register_error('spacereplace', makeSpaceHandler)
 
 
 def toAscii(uni_str):
   return unicodedata.normalize(
     'NFKD', uni_str).encode(
-      'ascii','ignore').decode()
+      'ascii','replace').decode()
 
 
 def removeUnderscore(sent):
@@ -50,11 +73,9 @@ def replaceDateNumbers(sent):
   return sent
 
 
+rm_date2 = r"(\b)([A-Za-z]{3,9})(\s+)([0-9][0-9]*)(,)(\s+)([0-9]{4})"
 def replaceDateStrings(sent):
-  words = [sent[s:e].strip().replace('on ', '') 
-    for (_, (s, e)) in df.find_dates(sent, index = True)]
-  for w in words:
-    sent = sent.replace(w, date_token)
+  sent = re.sub(rm_date2, date_token, sent)
   
   return sent
   
@@ -171,6 +192,7 @@ def postTrainPrep(sent):
   sent = re.sub(r"\.(?!\d)", " </s> ", sent)
   sent = re.sub(r"\n", " </s> ", sent)
   sent = re.sub(r"\r", "", sent)
+  sent = sent.rstrip()
   sent = re.sub(r"(?<!</s>)$", " </s>", sent)
   return strSquish(sent)
 
@@ -187,3 +209,6 @@ def w2vPrep(text):
       sent_vec),
     lambda sent_vec: regexMap(strSquish, sent_vec)
     ) 
+
+
+rm_number = r"(?<=^| )[-.]*\d+(?:\.\d+)?(?= |\.?$)|\d+(?:,\d{3})+(\.\d+)*"
